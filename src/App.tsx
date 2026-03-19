@@ -30,7 +30,10 @@ import { Level, Unit } from './types';
 type MainTab = 'course' | 'chat' | 'syllabus' | 'teacher';
 type UnitTab = 'vocab' | 'quiz' | 'grammar' | 'presentation';
 
-const TEACHER_EMAIL = "reuben.brown@jsh.mgu.ac.jp";
+const AUTHORIZED_TEACHERS = [
+  "reuben.brown@jsh.mgu.ac.jp"
+  // Add more teacher emails here
+];
 
 export default function App() {
   const [activeMainTab, setActiveMainTab] = useState<MainTab>('course');
@@ -108,7 +111,7 @@ export default function App() {
 
   const handleLogout = () => signOut(auth);
 
-  const isAdmin = user?.email === TEACHER_EMAIL;
+  const isAdmin = user?.email && AUTHORIZED_TEACHERS.includes(user.email);
 
   if (isLoading) {
     return (

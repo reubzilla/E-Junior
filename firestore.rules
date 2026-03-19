@@ -37,8 +37,15 @@ service cloud.firestore {
     }
 
     function isAdmin() {
+      // List of authorized teacher emails
+      let authorizedTeachers = [
+        "reuben.brown@jsh.mgu.ac.jp"
+        // Add more teacher emails here
+      ];
+      
       return isAuthenticated() && 
-        (request.auth.token.email == "reuben.brown@jsh.mgu.ac.jp" && request.auth.token.email_verified == true);
+             request.auth.token.email in authorizedTeachers && 
+             request.auth.token.email_verified == true;
     }
 
     // Rules

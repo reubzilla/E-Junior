@@ -2,9 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { collection, query, where, getDocs, setDoc, doc, addDoc, onSnapshot } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { Level, Unit, Word, GrammarPoint, Presentation, RubricCriterion, SyllabusData, SyllabusSection } from '../types';
-import { Plus, Save, Trash2, Edit2, ChevronRight, ChevronDown, FileUp, X, Layout, FileText, BookOpen } from 'lucide-react';
+import { Plus, Save, Trash2, Edit2, ChevronRight, ChevronDown, FileUp, X, Layout, FileText, BookOpen, ShieldAlert } from 'lucide-react';
 import { E_JUNIOR_LEVELS, DEFAULT_SYLLABUS } from '../constants';
 import { motion } from 'motion/react';
+
+const AUTHORIZED_TEACHERS = [
+  "reuben.brown@jsh.mgu.ac.jp"
+  // Add more teacher emails here
+];
 
 export const TeacherPortal: React.FC = () => {
   const [levels, setLevels] = useState<Level[]>([]);
@@ -17,8 +22,12 @@ export const TeacherPortal: React.FC = () => {
   const [portalTab, setPortalTab] = useState<'units' | 'syllabus'>('units');
   const [syllabus, setSyllabus] = useState<SyllabusData | null>(null);
 
+  const userEmail = auth.currentUser?.email;
+  const isAdmin = userEmail && AUTHORIZED_TEACHERS.includes(userEmail);
+
   // Fetch levels and units from Firestore
   useEffect(() => {
+    if (!isAdmin) return;
     const unsubscribeLevels = onSnapshot(collection(db, 'levels'), (snapshot) => {
       const levelsData = snapshot.docs.map(doc => doc.data() as Level);
       setLevels(levelsData.sort((a, b) => a.id - b.id));
@@ -39,10 +48,10 @@ export const TeacherPortal: React.FC = () => {
       unsubscribeLevels();
       unsubscribeSyllabus();
     };
-  }, []);
+  }, [isAdmin]);
 
   useEffect(() => {
-    if (!selectedLevel) return;
+    if (!selectedLevel || !isAdmin) return;
     const q = query(collection(db, 'units'), where('levelId', '==', selectedLevel.id));
     const unsubscribeUnits = onSnapshot(q, (snapshot) => {
       const unitsData = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as any));
@@ -50,7 +59,21 @@ export const TeacherPortal: React.FC = () => {
     });
 
     return () => unsubscribeUnits();
-  }, [selectedLevel]);
+  }, [selectedLevel, isAdmin]);
+
+  if (!isAdmin) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-black/5 shadow-sm">
+        <div className="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mb-4">
+          <ShieldAlert size={32} />
+        </div>
+        <h2 className="text-2xl font-serif text-brand-ink mb-2">Access Denied</h2>
+        <p className="text-brand-ink/60 max-w-md text-center">
+          You do not have permission to access the Teacher Portal. Please contact the administrator if you believe this is an error.
+        </p>
+      </div>
+    );
+  }
 
   const handleSaveUnit = async () => {
     if (!selectedUnit) return;

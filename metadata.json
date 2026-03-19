@@ -1,0 +1,5 @@
+{
+  "name": "E-Junior ESL",
+  "description": "A specialized ESL learning platform for E-Junior students, featuring structured levels, units, and presentation support.",
+  "requestFramePermissions": ["microphone"]
+}

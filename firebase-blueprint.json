@@ -1,0 +1,105 @@
+{
+  "entities": {
+    "Level": {
+      "title": "Level",
+      "description": "A course level (e.g., 1 E-Junior)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "number", "description": "Level ID (1, 2, or 3)" },
+        "name": { "type": "string", "description": "Level name" }
+      },
+      "required": ["id", "name"]
+    },
+    "Unit": {
+      "title": "Unit",
+      "description": "A learning unit within a level",
+      "type": "object",
+      "properties": {
+        "levelId": { "type": "number", "description": "The ID of the level this unit belongs to" },
+        "unitNumber": { "type": "number", "description": "The unit number (1-8)" },
+        "title": { "type": "string", "description": "Unit title" },
+        "vocabulary": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "term": { "type": "string" },
+              "definition": { "type": "string" },
+              "example": { "type": "string" }
+            }
+          }
+        },
+        "grammar": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": { "type": "string" },
+              "description": { "type": "string" },
+              "examples": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        },
+        "presentations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "title": { "type": "string" },
+              "task": { "type": "string" },
+              "scaffolding": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        },
+        "rubric": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "description": { "type": "string" },
+              "maxPoints": { "type": "number" }
+            }
+          }
+        }
+      },
+      "required": ["levelId", "unitNumber", "title"]
+    },
+    "Syllabus": {
+      "title": "Syllabus",
+      "description": "Course syllabus content",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "sections": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "title": { "type": "string" },
+              "content": { "type": "string" },
+              "icon": { "type": "string", "enum": ["Target", "Calendar", "Award", "Info"] }
+            }
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "/levels/{levelId}": {
+      "schema": "Level",
+      "description": "Course levels"
+    },
+    "/units/{unitId}": {
+      "schema": "Unit",
+      "description": "Course units with content"
+    },
+    "/syllabus/{syllabusId}": {
+      "schema": "Syllabus",
+      "description": "Course syllabus"
+    }
+  }
+}

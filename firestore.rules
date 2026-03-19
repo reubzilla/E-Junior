@@ -1,0 +1,60 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: levels
+    // Document ID: auto-generated or levelId
+    // Fields:
+    //   - id: number (required)
+    //   - name: string (required)
+    //
+    // Collection: units
+    // Document ID: auto-generated
+    // Fields:
+    //   - levelId: number (required)
+    //   - unitNumber: number (required)
+    //   - title: string (required)
+    //   - vocabulary: array of objects {term, definition, example}
+    //   - grammar: array of objects {title, description, examples}
+    //   - presentations: array of objects {id, title, task, scaffolding}
+    //   - rubric: array of objects {name, description, maxPoints}
+    //
+    // Collection: syllabus
+    // Document ID: main-syllabus
+    // Fields:
+    //   - title: string
+    //   - description: string
+    //   - sections: array of objects {id, title, content, icon}
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (request.auth.token.email == "reuben.brown@jsh.mgu.ac.jp" && request.auth.token.email_verified == true);
+    }
+
+    // Rules
+    match /levels/{levelId} {
+      allow read: if true; // Publicly readable for students
+      allow write: if isAdmin(); // Only teacher can modify
+    }
+
+    match /units/{unitId} {
+      allow read: if true; // Publicly readable for students
+      allow write: if isAdmin(); // Only teacher can modify
+    }
+
+    match /syllabus/{syllabusId} {
+      allow read: if true; // Publicly readable for students
+      allow write: if isAdmin(); // Only teacher can modify
+    }
+  }
+}

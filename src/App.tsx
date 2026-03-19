@@ -280,13 +280,29 @@ export default function App() {
                       <button
                         key={level.id}
                         onClick={() => setSelectedLevel(level)}
-                        className={`p-4 rounded-2xl text-left border transition-all ${
+                        className={`relative overflow-hidden p-4 rounded-2xl text-left border transition-all ${
                           selectedLevel?.id === level.id
                             ? 'bg-brand-olive text-white border-brand-olive shadow-md'
                             : 'bg-white border-black/5 text-brand-ink/70 hover:border-brand-olive/30'
                         }`}
                       >
-                        <span className="font-serif text-lg">{level.name}</span>
+                        {level.imageUrl && (
+                          <div className="absolute inset-0 z-0">
+                            <img 
+                              src={level.imageUrl} 
+                              alt="" 
+                              className={`w-full h-full object-cover opacity-20 transition-opacity ${
+                                selectedLevel?.id === level.id ? 'opacity-40' : 'group-hover:opacity-30'
+                              }`}
+                              style={{ objectPosition: level.imagePosition || 'center' }}
+                              referrerPolicy="no-referrer"
+                            />
+                            <div className={`absolute inset-0 ${
+                              selectedLevel?.id === level.id ? 'bg-brand-olive/60' : 'bg-white/40'
+                            }`} />
+                          </div>
+                        )}
+                        <span className="relative z-10 font-serif text-lg font-bold">{level.name}</span>
                       </button>
                     ))}
                   </div>
@@ -299,13 +315,24 @@ export default function App() {
                       <button
                         key={unit.id}
                         onClick={() => setSelectedUnit(unit)}
-                        className={`p-3 rounded-xl text-center border transition-all ${
+                        className={`relative overflow-hidden p-3 rounded-xl text-center border transition-all ${
                           selectedUnit?.id === unit.id
                             ? 'bg-brand-olive/10 border-brand-olive text-brand-olive font-bold'
                             : 'bg-white border-black/5 text-brand-ink/60 hover:bg-brand-cream'
                         }`}
                       >
-                        Unit {unit.unitNumber}
+                        {unit.imageUrl && (
+                          <div className="absolute inset-0 z-0">
+                            <img 
+                              src={unit.imageUrl} 
+                              alt="" 
+                              className="w-full h-full object-cover opacity-10"
+                              style={{ objectPosition: unit.imagePosition || 'center' }}
+                              referrerPolicy="no-referrer"
+                            />
+                          </div>
+                        )}
+                        <span className="relative z-10">Unit {unit.unitNumber}</span>
                       </button>
                     ))}
                   </div>

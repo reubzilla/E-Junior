@@ -16,6 +16,7 @@ export const TeacherPortal: React.FC = () => {
   const [selectedLevel, setSelectedLevel] = useState<Level | null>(null);
   const [units, setUnits] = useState<Unit[]>([]);
   const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
+  const [isEditingLevel, setIsEditingLevel] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showBulkImport, setShowBulkImport] = useState(false);
   const [bulkText, setBulkText] = useState('');
@@ -74,6 +75,21 @@ export const TeacherPortal: React.FC = () => {
       </div>
     );
   }
+
+  const handleSaveLevel = async () => {
+    if (!selectedLevel) return;
+    setIsSaving(true);
+    try {
+      await setDoc(doc(db, 'levels', selectedLevel.id.toString()), selectedLevel);
+      alert('Level details saved successfully!');
+      setIsEditingLevel(false);
+    } catch (error) {
+      console.error('Error saving level:', error);
+      alert('Error saving level.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleSaveUnit = async () => {
     if (!selectedUnit) return;
@@ -225,12 +241,19 @@ export const TeacherPortal: React.FC = () => {
     const levelsSnap = await getDocs(collection(db, 'levels'));
     if (levelsSnap.empty) {
       for (const level of E_JUNIOR_LEVELS) {
-        await setDoc(doc(db, 'levels', level.id.toString()), { id: level.id, name: level.name });
+        await setDoc(doc(db, 'levels', level.id.toString()), { 
+          id: level.id, 
+          name: level.name,
+          imageUrl: level.imageUrl,
+          imagePosition: 'center'
+        });
         for (const unit of level.units) {
           await addDoc(collection(db, 'units'), {
             levelId: level.id,
             unitNumber: unit.id,
             title: unit.title,
+            imageUrl: '',
+            imagePosition: 'center',
             vocabulary: unit.vocabulary,
             grammar: unit.grammar,
             presentations: unit.presentations,
@@ -283,18 +306,72 @@ export const TeacherPortal: React.FC = () => {
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-4">
-              <label className="block text-sm font-semibold text-brand-ink/60 uppercase tracking-wider">Select Level</label>
-              <div className="flex flex-wrap gap-2">
-                {levels.map(level => (
-                  <button
-                    key={level.id}
-                    onClick={() => setSelectedLevel(level)}
-                    className={`px-4 py-2 rounded-xl border transition-all ${selectedLevel?.id === level.id ? 'bg-brand-olive text-white' : 'bg-brand-cream text-brand-ink/60'}`}
-                  >
-                    {level.name}
-                  </button>
-                ))}
+              <div className="flex justify-between items-center">
+                <label className="block text-sm font-semibold text-brand-ink/60 uppercase tracking-wider">Select Level</label>
+                <button 
+                  onClick={() => setIsEditingLevel(!isEditingLevel)}
+                  className="text-xs text-brand-olive font-bold flex items-center gap-1 hover:underline"
+                >
+                  <Edit2 size={12} /> {isEditingLevel ? 'Cancel' : 'Edit Level Details'}
+                </button>
               </div>
+              
+              {isEditingLevel && selectedLevel ? (
+                <div className="p-4 bg-brand-cream/50 rounded-2xl border border-brand-olive/20 space-y-4">
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold opacity-30 uppercase">Level Name</p>
+                      <input
+                        value={selectedLevel.name}
+                        onChange={(e) => setSelectedLevel({ ...selectedLevel, name: e.target.value })}
+                        className="w-full p-2 rounded-lg border border-black/10 focus:ring-1 focus:ring-brand-olive outline-none"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold opacity-30 uppercase">Cover Image URL</p>
+                      <input
+                        value={selectedLevel.imageUrl || ''}
+                        onChange={(e) => setSelectedLevel({ ...selectedLevel, imageUrl: e.target.value })}
+                        placeholder="https://example.com/cover.jpg"
+                        className="w-full p-2 rounded-lg border border-black/10 focus:ring-1 focus:ring-brand-olive outline-none"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold opacity-30 uppercase">Image Crop/Position</p>
+                      <select
+                        value={selectedLevel.imagePosition || 'center'}
+                        onChange={(e) => setSelectedLevel({ ...selectedLevel, imagePosition: e.target.value })}
+                        className="w-full p-2 rounded-lg border border-black/10 focus:ring-1 focus:ring-brand-olive outline-none"
+                      >
+                        <option value="center">Center</option>
+                        <option value="top">Top</option>
+                        <option value="bottom">Bottom</option>
+                        <option value="left">Left</option>
+                        <option value="right">Right</option>
+                      </select>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleSaveLevel}
+                    disabled={isSaving}
+                    className="w-full py-2 bg-brand-olive text-white rounded-xl text-sm font-bold hover:opacity-90 transition-all"
+                  >
+                    {isSaving ? 'Saving...' : 'Save Level Details'}
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {levels.map(level => (
+                    <button
+                      key={level.id}
+                      onClick={() => setSelectedLevel(level)}
+                      className={`px-4 py-2 rounded-xl border transition-all ${selectedLevel?.id === level.id ? 'bg-brand-olive text-white' : 'bg-brand-cream text-brand-ink/60'}`}
+                    >
+                      {level.name}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="space-y-4">
@@ -321,13 +398,32 @@ export const TeacherPortal: React.FC = () => {
             >
               <div className="flex justify-between items-center">
                 <h3 className="text-2xl font-serif">Editing: {selectedLevel?.name} - Unit {selectedUnit.unitNumber}</h3>
-                <button
-                  onClick={handleSaveUnit}
-                  disabled={isSaving}
-                  className="flex items-center gap-2 px-6 py-2 bg-brand-olive text-white rounded-xl hover:opacity-90 disabled:opacity-50 transition-all shadow-md"
-                >
-                  {isSaving ? 'Saving...' : <><Save size={18} /> Save Changes</>}
-                </button>
+                <div className="flex gap-4">
+                  <div className="flex flex-col gap-1">
+                    <input
+                      placeholder="Unit Image URL"
+                      value={selectedUnit.imageUrl || ''}
+                      onChange={(e) => setSelectedUnit({ ...selectedUnit, imageUrl: e.target.value })}
+                      className="text-xs p-1 border rounded"
+                    />
+                    <select
+                      value={selectedUnit.imagePosition || 'center'}
+                      onChange={(e) => setSelectedUnit({ ...selectedUnit, imagePosition: e.target.value })}
+                      className="text-[10px] p-1 border rounded"
+                    >
+                      <option value="center">Center Crop</option>
+                      <option value="top">Top Crop</option>
+                      <option value="bottom">Bottom Crop</option>
+                    </select>
+                  </div>
+                  <button
+                    onClick={handleSaveUnit}
+                    disabled={isSaving}
+                    className="flex items-center gap-2 px-6 py-2 bg-brand-olive text-white rounded-xl hover:opacity-90 disabled:opacity-50 transition-all shadow-md"
+                  >
+                    {isSaving ? 'Saving...' : <><Save size={18} /> Save Changes</>}
+                  </button>
+                </div>
               </div>
 
               {/* Vocabulary Editor */}

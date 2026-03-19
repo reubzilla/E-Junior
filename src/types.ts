@@ -28,6 +28,8 @@ export interface Unit {
   levelId: number;
   unitNumber: number;
   title: string;
+  imageUrl?: string;
+  imagePosition?: string; // e.g., 'center', 'top', 'bottom'
   vocabulary: Word[];
   grammar: GrammarPoint[];
   presentations: Presentation[];
@@ -37,6 +39,8 @@ export interface Unit {
 export interface Level {
   id: number;
   name: string;
+  imageUrl?: string;
+  imagePosition?: string; // e.g., 'center', 'top', 'bottom'
   units: Unit[];
 }
 

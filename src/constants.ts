@@ -68,16 +68,19 @@ export const E_JUNIOR_LEVELS: Level[] = [
   {
     id: 1,
     name: '1 E-Junior',
+    imageUrl: 'https://picsum.photos/seed/ejunior1/400/600',
     units: Array.from({ length: 8 }, (_, i) => createEmptyUnit(i + 1))
   },
   {
     id: 2,
     name: '2 E-Junior',
+    imageUrl: 'https://picsum.photos/seed/ejunior2/400/600',
     units: Array.from({ length: 8 }, (_, i) => createEmptyUnit(i + 1))
   },
   {
     id: 3,
     name: '3 E-Junior',
+    imageUrl: 'https://picsum.photos/seed/ejunior3/400/600',
     units: Array.from({ length: 8 }, (_, i) => createEmptyUnit(i + 1))
   }
 ];

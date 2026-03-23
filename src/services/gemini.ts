@@ -18,8 +18,17 @@ export const getGeminiResponse = async (prompt: string, history: { role: 'user' 
     },
   });
 
-  const response = await chat.sendMessage({ message: prompt });
-  return response.text;
+  try {
+    const response = await chat.sendMessage({ message: prompt });
+    return response.text;
+  } catch (error: any) {
+    console.error("Gemini API Error:", error);
+    const errorMsg = error.message || String(error);
+    if (errorMsg.includes("429") || errorMsg.includes("RESOURCE_EXHAUSTED")) {
+      return "Error: Quota exceeded. The free tier of Gemini allows 15 requests per minute. Please wait a moment and try again.";
+    }
+    return "Error: I'm having trouble connecting to the AI right now. Please try again later.";
+  }
 };
 
 export const generateQuizQuestions = async (vocabulary: Word[], cefrLevel?: string, theme?: string): Promise<Question[]> => {
@@ -32,9 +41,10 @@ Target Students CEFR Level: ${cefrLevel || 'A2'}
 Unit Theme: ${theme || 'General English'}
 `;
 
-  const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
-    contents: `Generate 10 English vocabulary quiz questions based on the following vocabulary list:
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: `Generate 10 English vocabulary quiz questions based on the following vocabulary list:
 ${vocabulary.map(v => `- ${v.term}: ${v.definition}`).join('\n')}
 
 ${contextInfo}
@@ -50,29 +60,37 @@ Include a variety of question types:
 6. "sentence_scramble": A complete example sentence using the target word. The correctAnswer should be the full, correct sentence. The options should be the individual words of the sentence.
 
 Provide the result as a JSON array.`,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.ARRAY,
-        items: {
-          type: Type.OBJECT,
-          properties: {
-            id: { type: Type.STRING },
-            type: { type: Type.STRING, enum: ['multiple_choice', 'collocation', 'odd_one_out', 'visual_context', 'word_family', 'sentence_scramble'] },
-            word: { type: Type.STRING },
-            prompt: { type: Type.STRING },
-            correctAnswer: { type: Type.STRING },
-            options: { type: Type.ARRAY, items: { type: Type.STRING } },
-            imageDescription: { type: Type.STRING },
-            rootWord: { type: Type.STRING },
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              id: { type: Type.STRING },
+              type: { type: Type.STRING, enum: ['multiple_choice', 'collocation', 'odd_one_out', 'visual_context', 'word_family', 'sentence_scramble'] },
+              word: { type: Type.STRING },
+              prompt: { type: Type.STRING },
+              correctAnswer: { type: Type.STRING },
+              options: { type: Type.ARRAY, items: { type: Type.STRING } },
+              imageDescription: { type: Type.STRING },
+              rootWord: { type: Type.STRING },
+            },
+            required: ['id', 'type', 'word', 'prompt', 'correctAnswer', 'options'],
           },
-          required: ['id', 'type', 'word', 'prompt', 'correctAnswer', 'options'],
         },
       },
-    },
-  });
+    });
 
-  return JSON.parse(response.text);
+    return JSON.parse(response.text);
+  } catch (error: any) {
+    console.error("Quiz Generation Error:", error);
+    const errorMsg = error.message || String(error);
+    if (errorMsg.includes("429") || errorMsg.includes("RESOURCE_EXHAUSTED")) {
+      throw new Error("Quota exceeded. The free tier of Gemini allows 15 requests per minute. Please wait a moment and try again.");
+    }
+    throw error;
+  }
 };
 
 export const generateImage = async (description: string): Promise<string | undefined> => {
@@ -81,22 +99,26 @@ export const generateImage = async (description: string): Promise<string | undef
     return undefined;
   }
   const ai = new GoogleGenAI({ apiKey });
-  const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash-image',
-    contents: {
-      parts: [{ text: `A simple, clear illustration for an ESL student showing: ${description}` }],
-    },
-    config: {
-      imageConfig: {
-        aspectRatio: "1:1",
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash-image',
+      contents: {
+        parts: [{ text: `A simple, clear illustration for an ESL student showing: ${description}` }],
       },
-    },
-  });
+      config: {
+        imageConfig: {
+          aspectRatio: "1:1",
+        },
+      },
+    });
 
-  for (const part of response.candidates?.[0]?.content?.parts || []) {
-    if (part.inlineData) {
-      return `data:image/png;base64,${part.inlineData.data}`;
+    for (const part of response.candidates?.[0]?.content?.parts || []) {
+      if (part.inlineData) {
+        return `data:image/png;base64,${part.inlineData.data}`;
+      }
     }
+  } catch (error: any) {
+    console.error("Image Generation Error:", error);
   }
   return undefined;
 };

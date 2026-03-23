@@ -28,6 +28,8 @@ export interface Unit {
   levelId: number;
   unitNumber: number;
   title: string;
+  theme?: string;
+  cefrLevel?: string;
   imageUrl?: string;
   imagePosition?: string; // e.g., 'center', 'top', 'bottom'
   vocabulary: Word[];
@@ -61,4 +63,17 @@ export interface SyllabusData {
 export interface ChatMessage {
   role: 'user' | 'model';
   text: string;
+}
+
+export type QuestionType = 'multiple_choice' | 'collocation' | 'odd_one_out' | 'visual_context' | 'word_family' | 'sentence_scramble';
+
+export interface Question {
+  id: string;
+  type: QuestionType;
+  word: string;
+  prompt: string;
+  correctAnswer: string;
+  options: string[];
+  imageDescription?: string;
+  rootWord?: string;
 }

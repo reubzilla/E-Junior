@@ -397,7 +397,32 @@ export const TeacherPortal: React.FC = () => {
               className="space-y-12 pt-8 border-t border-black/5"
             >
               <div className="flex justify-between items-center">
-                <h3 className="text-2xl font-serif">Editing: {selectedLevel?.name} - Unit {selectedUnit.unitNumber}</h3>
+                <div className="space-y-2 flex-1 mr-8">
+                  <h3 className="text-2xl font-serif">Editing: {selectedLevel?.name} - Unit {selectedUnit.unitNumber}</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold opacity-30 uppercase">Unit Theme</p>
+                      <input
+                        placeholder="e.g. Travel, Technology, Food"
+                        value={selectedUnit.theme || ''}
+                        onChange={(e) => setSelectedUnit({ ...selectedUnit, theme: e.target.value })}
+                        className="w-full p-2 rounded-lg border border-black/10 focus:ring-1 focus:ring-brand-olive outline-none text-sm"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-bold opacity-30 uppercase">CEFR Level</p>
+                      <select
+                        value={selectedUnit.cefrLevel || 'A1'}
+                        onChange={(e) => setSelectedUnit({ ...selectedUnit, cefrLevel: e.target.value })}
+                        className="w-full p-2 rounded-lg border border-black/10 focus:ring-1 focus:ring-brand-olive outline-none text-sm"
+                      >
+                        {['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map(level => (
+                          <option key={level} value={level}>{level}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
                 <div className="flex gap-4">
                   <div className="flex flex-col gap-1">
                     <input

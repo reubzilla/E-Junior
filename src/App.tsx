@@ -378,7 +378,13 @@ export default function App() {
                           transition={{ duration: 0.2 }}
                         >
                           {activeUnitTab === 'vocab' && <VocabBuilder vocabulary={selectedUnit.vocabulary} />}
-                          {activeUnitTab === 'quiz' && <VocabQuiz vocabulary={selectedUnit.vocabulary} />}
+                          {activeUnitTab === 'quiz' && (
+                            <VocabQuiz 
+                              vocabulary={selectedUnit.vocabulary} 
+                              cefrLevel={selectedUnit.cefrLevel}
+                              theme={selectedUnit.theme}
+                            />
+                          )}
                           {activeUnitTab === 'grammar' && <GrammarPractice grammar={selectedUnit.grammar} />}
                           {activeUnitTab === 'presentation' && <PresentationGuide presentations={selectedUnit.presentations} rubric={selectedUnit.rubric} />}
                         </motion.div>

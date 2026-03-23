@@ -1,9 +1,15 @@
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 import { Word, Question } from "../types";
 
-const apiKey = process.env.GEMINI_API_KEY || '';
+// In Vite, we use import.meta.env to access environment variables.
+// Only variables prefixed with VITE_ are exposed to the client.
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
 
 export const getGeminiResponse = async (prompt: string, history: { role: 'user' | 'model', parts: [{ text: string }] }[] = []) => {
+  if (!apiKey) {
+    console.error("Gemini API Key is missing. Please set VITE_GEMINI_API_KEY in your environment variables.");
+    return "Error: API Key missing.";
+  }
   const ai = new GoogleGenAI({ apiKey });
   const chat = ai.chats.create({
     model: "gemini-3-flash-preview",
@@ -17,6 +23,9 @@ export const getGeminiResponse = async (prompt: string, history: { role: 'user' 
 };
 
 export const generateQuizQuestions = async (vocabulary: Word[], cefrLevel?: string, theme?: string): Promise<Question[]> => {
+  if (!apiKey) {
+    throw new Error("Gemini API Key is missing. Please set VITE_GEMINI_API_KEY in your environment variables.");
+  }
   const ai = new GoogleGenAI({ apiKey });
   const contextInfo = `
 Target Students CEFR Level: ${cefrLevel || 'A2'}
@@ -67,6 +76,10 @@ Provide the result as a JSON array.`,
 };
 
 export const generateImage = async (description: string): Promise<string | undefined> => {
+  if (!apiKey) {
+    console.error("Gemini API Key is missing for image generation.");
+    return undefined;
+  }
   const ai = new GoogleGenAI({ apiKey });
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash-image',
